@@ -1,6 +1,12 @@
 from pytube import YouTube
 import os
 from pathlib import Path
+from PySimpleGUI import FolderBrowse
+import PySimpleGUI as sg
+import pyperclip
+
+complete = False
+streams = None
 
 
 def dexit():
@@ -24,91 +30,147 @@ def fetch_directory(directory_name):
         return None
 
 
-def download_video():
-    qcmds = ["quit", "exit"]
+def get_clipboard_text():
+    return pyperclip.paste()
+
+
+def get_stream(url):
+    yt = YouTube(url)
+    if not yt:
+        sg.popup_error(title='Download Error: Unable to fetch desired YouTube video! Please verify URL and try again.')
+
+    streams = yt.streams.all()
+
+    layout = [[sg.Text('Choose Stream')]]
+    for i, s in enumerate(streams):
+        layout += [[sg.CB(str(s), key=i)]]
+
+    layout += [[sg.Ok(), sg.Cancel()]]
+    event, values = sg.Window('Choose Stream', layout).read(close=True)
+    choices = [k for k in values if values[k]]
+    if not choices:
+        sg.popup_error("Error: You must choose a stream choice to download.")
+        # exit()
+    else:
+        print(f"You chose {choices[0]}")
+        print(streams[choices[0]])
+
+    return streams[choices[0]]
+
+
+def menu():
+    sg.theme('DarkGrey8')
+    sg.theme_border_width(2)
+    layout = [
+        [sg.Text('', size=(1, 1))],
+        [sg.Text('Video URL:', size=(17, 1), font=("Rubik", 13), tooltip='Your desired video URL'), sg.InputText(key='-URL-', size=(56, 2), pad=5, font=("Helvetica", 16)), sg.Button(button_text='Paste Clipboard', pad=5, size=(15, 1), font=("Helvetica", 11), key='-PASTE-')],
+        [sg.HorizontalSeparator(color='white', pad=5)],
+        [sg.Text('Download Directory:', size=(17, 1), font=("Rubik", 13)), sg.InputText(key='-DIRECTORY-', size=(56, 2), pad=5, font=("Helvetica", 16)), FolderBrowse(button_text="Browse Files", pad=5, size=(15, 1), font=("Helvetica", 11), key='-BROWSE-')],
+        [sg.Text('', size=(1, 2))],
+        [sg.Button(button_text='Download', size=(12, 1), pad=5, font=("Helvetica", 14)), sg.Stretch(), sg.Button(button_text='Exit', size=(12, 1), pad=5, font=("Helvetica", 14), key='-DOWNLOAD-')]
+    ]
+
+    window = sg.Window('YouTube Downloader', layout)
 
     while True:
-        target_dest = input("Where would you like the file to be downloaded? (ex /File/Path, Desktop, Documents, Downloads").lower()
-        if target_dest in qcmds:
-            dexit()
+        event, values = window.read()
+        if event == sg.WIN_CLOSED or event == 'Exit':
             break
 
-        match_dest = fetch_directory(target_dest)
-        if match_dest:
-            print(f"Directory located! Files wll be downloaded to: {match_dest}")
-            break
-        else:
-            print("The specified directory does not exist, or is not a valid directory. Please enter a valid directory.")
+        match event:
+            case '-PASTE-':
+                clipboard_text = get_clipboard_text()
+                window['-INPUT-'].update(clipboard_text)
+                try:
+                    stream = get_stream(values['-URL-'])
+                    done = False
+        print(f"You entered: {values[0]}")
 
-    while True:
-        url = input("Enter the URL of the video you would like to download:")
-        if url in qcmds:
-            dexit()
-            break
-        try:
-            video = YouTube(url)
-            if not video:
-                print("Invalid YouTube video URL! Unable to fetch. Please verify the URL and try again.")
-            else:
-                print("Fetched your video!")
-                print(f"Title: {video.title}")
-                print(f"Length: {video.length}")
-                print(f"Publish Date: {video.publish_date}")
-                break
-        except Exception as e:
-            print("Invalid YouTube video URL! Unable to fetch. Please verify the URL and try again.")
-
-    while True:
-        valid_types = ["mp3", "mp4"]
-        file_type = input("Enter the file type you would like to download the video as: (mp3, mp4)")
-        if file_type in qcmds:
-            dexit()
-            break
-
-        if file_type not in valid_types:
-            print("Invalid file type submitted. Please try again.")
-        else:
-            break
-
-
-
-
-
-    # target_dest = input("Where would you like the file to be downloaded? (ex /File/Path, Desktop, Documents, Downloads").lower()
-    # if target_dest == "quit" or target_dest == "exit":
-    #     dexit()
-    # else:
-    #     match_dest = fetch_directory(target_dest)
-    #     if match_dest:
-    #         print(f"Directory located! Files wll be downloaded to: {match_dest}")
-    #         # logic here
-    #
-    #         url = input("Enter the URL of the video you would like to download:")
-    #         if url == "quit" or url == "exit":
-    #             dexit()
-    #         else:
-    #             video = YouTube(url)
-    #             if not video:
-    #                 print("Invalid YouTube video URL! Unable to fetch. Please verify the URL and try again.")
-    #                 download_video()
-    #             else:
-    #                 file_type = input("Enter the file type you would like to download the video as: (mp3, mp4)")
-    #                 valid_types = ["mp3", "mp4"]
-    #                 if not file_type in valid_types:
-    #                     print("Invalid file type submitted. Please try again.")
-    #                     download_video()
-    #
-    #     else:
-    #         print("The specified directory does not exist, or is not a valid directory. Please enter a valid directory.")
-    #         download_video()
+    window.close()
 
 
 def main():
     try:
-        download_video()
+        # download_video()
+        menu()
+
+#        layout = [[sg.Text('URL', size=(20, 1)), sg.InputText(key='-URL-') ],
+#                  [sg.Text('Download Directory', size=(20, 1)), sg.InputText(key='-DIRECTORY-'),
+#                   FolderBrowse(button_text="Browse", key="-BROWSE-")],
+#                  [sg.Text(size=(50, 2), key='-OUTPUT-')],
+#                  [sg.Button('Download'), sg.Button('Exit')]]
+#
+#        window = sg.Window('YouTube Downloader', layout)
+#
+#        while True:
+#            event, values = window.read()
+#
+#            match event:
+#                case sg.WIN_CLOSED | 'Exit':
+#                    break
+#                case _:
+#                    print('Unknown Event')
+
+
+
     except Exception as e:
         print("An error occurred with the program:", str(e))
 
 
 if __name__ == "__main__":
     main()
+
+
+    def download_video():
+        qcmds = ["quit", "exit"]
+        video = None
+
+        while True:
+            target_dest = input(
+                "Where would you like the file to be downloaded? (ex /File/Path, Desktop, Documents, Downloads").lower()
+            if target_dest in qcmds:
+                dexit()
+                break
+
+            match_dest = fetch_directory(target_dest)
+            if match_dest:
+                print(f"Directory located! Files wll be downloaded to: {match_dest}")
+                break
+            else:
+                print(
+                    "The specified directory does not exist, or is not a valid directory. Please enter a valid directory.")
+
+        while True:
+            url = input("Enter the URL of the video you would like to download:")
+            if url in qcmds:
+                dexit()
+                break
+            try:
+                print(url)
+                video = YouTube(url)
+                print(video)
+                if not video:
+                    print("Invalid YouTube video URL! Unable to fetch. Please verify the URL and try again.")
+                else:
+                    print("Fetched your video!")
+                    print(f"Title: {video.title}")
+                    print(f"Length: {video.length}")
+                    print(f"Publish Date: {video.publish_date}")
+                    break
+            except Exception as e:
+                print(e)
+                print("Invalid YouTube video URL! Unable to fetch. Please verify the URL and try again.")
+
+        while True:
+            valid_types = ["mp3", "mp4"]
+            file_type = input("Enter the file type you would like to download the video as: (mp3, mp4)")
+            if file_type in qcmds:
+                dexit()
+                break
+
+            if file_type not in valid_types:
+                print("Invalid file type submitted. Please try again.")
+            else:
+                break
+
+        print(video.streams)
