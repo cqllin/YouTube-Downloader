@@ -4,14 +4,24 @@ from pathlib import Path
 from PySimpleGUI import FolderBrowse
 import PySimpleGUI as sg
 import pyperclip
+import threading
+import time
 
-complete = False
+done = False
 streams = None
+title = ''
 
 
 def dexit():
     print("Exit command received - Exiting program.")
     exit()
+
+
+def download_thread(stream, file_path):
+    global done, title
+    title = stream.title
+    stream.download(file_path)
+    done = True
 
 
 def fetch_directory(directory_name):
@@ -59,6 +69,7 @@ def get_stream(url):
 
 
 def menu():
+    global done, title
     sg.theme('DarkGrey8')
     sg.theme_border_width(2)
     layout = [
@@ -67,6 +78,7 @@ def menu():
         [sg.HorizontalSeparator(color='white', pad=5)],
         [sg.Text('Download Directory:', size=(17, 1), font=("Rubik", 13)), sg.InputText(key='-DIRECTORY-', size=(56, 2), pad=5, font=("Helvetica", 16)), FolderBrowse(button_text="Browse Files", pad=5, size=(15, 1), font=("Helvetica", 11), key='-BROWSE-')],
         [sg.Text('', size=(1, 2))],
+        [sg.Text(size=(50, 2), key='-OUTPUT-')],
         [sg.Button(button_text='Download', size=(12, 1), pad=5, font=("Helvetica", 14)), sg.Stretch(), sg.Button(button_text='Exit', size=(12, 1), pad=5, font=("Helvetica", 14), key='-DOWNLOAD-')]
     ]
 
@@ -80,11 +92,26 @@ def menu():
         match event:
             case '-PASTE-':
                 clipboard_text = get_clipboard_text()
-                window['-INPUT-'].update(clipboard_text)
+                window['-URL-'].update(clipboard_text)
+            case 'Download':
                 try:
                     stream = get_stream(values['-URL-'])
                     done = False
-        print(f"You entered: {values[0]}")
+                    thread = threading.Thread(target=download_thread, args=(stream, values['-DIRECTORY-']), daemon=True)
+                    thread.start()
+
+                except:
+                    done = True
+                    print("Error occurred fetching URL from user input.")
+                    sg.popup_error("Please enter a valid YouTube URL.")
+
+        while not done:
+            sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, 'Downloading', time_between_frames=30)
+            time.sleep(.3)
+            sg.popup_animated(image_source=None)
+            window['-OUTPUT-'].update(f"{title} is finished downloading!")
+
+        # print(f"You entered: {values[0]}")
 
     window.close()
 
@@ -174,3 +201,10 @@ if __name__ == "__main__":
                 break
 
         print(video.streams)
+
+class YouTubeSearch():
+    def __init__(self, title='', length=0, publish_date=''):
+        self.title = title
+        self.length = length
+        self.publish_date = publish_date
+
