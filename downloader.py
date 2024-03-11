@@ -70,6 +70,8 @@ def get_stream(url):
 
 def menu():
     global done, title
+    is_error = False
+    is_okay = False
     sg.theme('DarkGrey8')
     sg.theme_border_width(2)
     layout = [
@@ -95,17 +97,31 @@ def menu():
                 window['-URL-'].update(clipboard_text)
             case 'Download':
                 try:
-                    stream = get_stream(values['-URL-'])
-                    done = False
-                    thread = threading.Thread(target=download_thread, args=(stream, values['-DIRECTORY-']), daemon=True)
-                    thread.start()
+                    url_value = values['-URL-']
+                    dir_value = values['-DIRECTORY-']
+                    if not url_value and not dir_value:
+                        is_error = True
+                        sg.popup_error("You must provide a URL to search, and a directory to save the video to!", title="Missing Values")
+                    elif not url_value:
+                        is_error = True
+                        sg.popup_error("You must provide a URL to search!", title="Missing Values")
+                    elif not dir_value:
+                        is_error = True
+                        sg.popup_error("You must select or provide a directory to save the video to!", title="Missing Values")
+                    else:
+                        done = False
+                        is_okay = True
+                        stream = get_stream(url_value)
+                        thread = threading.Thread(target=download_thread, args=(stream, values['-DIRECTORY-']), daemon=True)
+                        thread.start()
 
-                except:
+                except Exception as e:
+                    print(e)
                     done = True
                     print("Error occurred fetching URL from user input.")
                     sg.popup_error("Please enter a valid YouTube URL.")
 
-        while not done:
+        while not done and is_okay:
             sg.popup_animated(sg.DEFAULT_BASE64_LOADING_GIF, 'Downloading', time_between_frames=30)
             time.sleep(.3)
             sg.popup_animated(image_source=None)
@@ -201,10 +217,4 @@ if __name__ == "__main__":
                 break
 
         print(video.streams)
-
-class YouTubeSearch():
-    def __init__(self, title='', length=0, publish_date=''):
-        self.title = title
-        self.length = length
-        self.publish_date = publish_date
 
