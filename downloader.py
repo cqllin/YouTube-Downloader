@@ -1,6 +1,4 @@
 from pytube import YouTube
-import os
-from pathlib import Path
 from PySimpleGUI import FolderBrowse
 import PySimpleGUI as sg
 import pyperclip
@@ -22,22 +20,6 @@ def download_thread(stream, file_path):
     title = stream.title
     stream.download(file_path)
     done = True
-
-
-def fetch_directory(directory_name):
-    provided_dirs = ["desktop", "documents", "downloads"]
-    if directory_name in provided_dirs:
-        path = Path.home() / directory_name.capitalize()
-        if path.exists() and path.is_dir():
-            return path
-        else:
-            custom_path = Path(directory_name)
-            if custom_path.exists() and custom_path.is_dir():
-                return custom_path
-
-        return None
-    else:
-        return None
 
 
 def get_clipboard_text():
@@ -70,7 +52,6 @@ def get_stream(url):
 
 def menu():
     global done, title
-    is_error = False
     is_okay = False
     sg.theme('DarkGrey8')
     sg.theme_border_width(2)
@@ -134,87 +115,11 @@ def menu():
 
 def main():
     try:
-        # download_video()
         menu()
-
-#        layout = [[sg.Text('URL', size=(20, 1)), sg.InputText(key='-URL-') ],
-#                  [sg.Text('Download Directory', size=(20, 1)), sg.InputText(key='-DIRECTORY-'),
-#                   FolderBrowse(button_text="Browse", key="-BROWSE-")],
-#                  [sg.Text(size=(50, 2), key='-OUTPUT-')],
-#                  [sg.Button('Download'), sg.Button('Exit')]]
-#
-#        window = sg.Window('YouTube Downloader', layout)
-#
-#        while True:
-#            event, values = window.read()
-#
-#            match event:
-#                case sg.WIN_CLOSED | 'Exit':
-#                    break
-#                case _:
-#                    print('Unknown Event')
-
-
-
     except Exception as e:
         print("An error occurred with the program:", str(e))
 
 
 if __name__ == "__main__":
     main()
-
-
-    def download_video():
-        qcmds = ["quit", "exit"]
-        video = None
-
-        while True:
-            target_dest = input(
-                "Where would you like the file to be downloaded? (ex /File/Path, Desktop, Documents, Downloads").lower()
-            if target_dest in qcmds:
-                dexit()
-                break
-
-            match_dest = fetch_directory(target_dest)
-            if match_dest:
-                print(f"Directory located! Files wll be downloaded to: {match_dest}")
-                break
-            else:
-                print(
-                    "The specified directory does not exist, or is not a valid directory. Please enter a valid directory.")
-
-        while True:
-            url = input("Enter the URL of the video you would like to download:")
-            if url in qcmds:
-                dexit()
-                break
-            try:
-                print(url)
-                video = YouTube(url)
-                print(video)
-                if not video:
-                    print("Invalid YouTube video URL! Unable to fetch. Please verify the URL and try again.")
-                else:
-                    print("Fetched your video!")
-                    print(f"Title: {video.title}")
-                    print(f"Length: {video.length}")
-                    print(f"Publish Date: {video.publish_date}")
-                    break
-            except Exception as e:
-                print(e)
-                print("Invalid YouTube video URL! Unable to fetch. Please verify the URL and try again.")
-
-        while True:
-            valid_types = ["mp3", "mp4"]
-            file_type = input("Enter the file type you would like to download the video as: (mp3, mp4)")
-            if file_type in qcmds:
-                dexit()
-                break
-
-            if file_type not in valid_types:
-                print("Invalid file type submitted. Please try again.")
-            else:
-                break
-
-        print(video.streams)
 
