@@ -76,13 +76,10 @@ def menu():
                     url_value = values['-URL-']
                     dir_value = values['-DIRECTORY-']
                     if not url_value and not dir_value:
-                        is_error = True
                         sg.popup_error("You must provide a URL to search, and a directory to save the video to!", title="Missing Values")
                     elif not url_value:
-                        is_error = True
                         sg.popup_error("You must provide a URL to search!", title="Missing Values")
                     elif not dir_value:
-                        is_error = True
                         sg.popup_error("You must select or provide a directory to save the video to!", title="Missing Values")
                     else:
                         done = False
