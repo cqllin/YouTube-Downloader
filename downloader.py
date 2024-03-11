@@ -10,11 +10,6 @@ streams = None
 title = ''
 
 
-def dexit():
-    print("Exit command received - Exiting program.")
-    exit()
-
-
 def download_thread(stream, file_path):
     global done, title
     title = stream.title
