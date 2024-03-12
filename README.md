@@ -16,7 +16,10 @@ I am not sure if I will continue to add to this, however I will most likely fix 
 ## Notes:
   - In this repository, you will notice an exe file. This is NOT necessary, and all the source code is provided within the Python script.
   - If you do not wish to run the exe, you can run it on a VM or simply install the necessary packages for Python and run it via Python with the source code.
-  - You can use the Free Trial for PySimpleGUI, or you can create a Free Hobbyist account and acquire a developer key. 
+  - You can use the Free Trial for PySimpleGUI, or you can create a Free Hobbyist account and acquire a developer key.
+
+## Current Bugs:
+  - Videos themselves have no audio, but downloading audio/mp4 or converting to MP3 works fine. Will look into this.
 
 ## Packages Used:
   - [pytube](https://github.com/pytube/pytube)
@@ -24,6 +27,3 @@ I am not sure if I will continue to add to this, however I will most likely fix 
   - [pyperclip](https://github.com/asweigart/pyperclip)
   - [moviepy](https://github.com/Zulko/moviepy)
   - [pyinstaller](https://github.com/pyinstaller/pyinstaller) (for exe compile)
-
-## Current Bugs:
-  - Videos themselves have no audio, but downloading audio/mp4 or converting to MP3 works fine. Will look into this.
