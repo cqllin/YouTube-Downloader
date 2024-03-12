@@ -12,6 +12,7 @@ I am not sure if I will continue to add to this, however I will most likely fix 
   - Download videos quickly & efficiently.
   - Handles errors.
   - File browser pop up for file selection.
+  - MP4 audio to MP3 conversion if available.
 
 ## Notes:
   - In this repository, you will notice an exe file. This is NOT necessary, and all the source code is provided within the Python script.
