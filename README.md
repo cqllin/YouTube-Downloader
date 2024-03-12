@@ -24,3 +24,6 @@ I am not sure if I will continue to add to this, however I will most likely fix 
   - [pyperclip](https://github.com/asweigart/pyperclip)
   - [moviepy](https://github.com/Zulko/moviepy)
   - [pyinstaller](https://github.com/pyinstaller/pyinstaller) (for exe compile)
+
+## Current Bugs:
+  - Videos themselves have no audio, but downloading audio/mp4 or converting to MP3 works fine. Will look into this.
