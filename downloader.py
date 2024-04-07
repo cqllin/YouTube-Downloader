@@ -5,11 +5,8 @@ import pyperclip
 import threading
 import time
 from moviepy.editor import *
-<<<<<<< HEAD
 import os
 import re
-=======
->>>>>>> 536ac7e0c470196ce5990d0de21fd996989083c5
 
 done = False
 streams = None
