@@ -20,7 +20,7 @@ I am not sure if I will continue to add to this, however I will most likely fix 
   - You can use the Free Trial for PySimpleGUI, or you can create a Free Hobbyist account and acquire a developer key.
 
 ## Current Bugs:
-  - Videos themselves have no audio, but downloading audio/mp4 or converting to MP3 works fine. Will look into this.
+  - None!
 
 ## Packages Used:
   - [pytube](https://github.com/pytube/pytube)
