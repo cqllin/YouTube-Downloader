@@ -12,23 +12,39 @@ done = False
 streams = None
 title = ''
 
-
 def MP4toMP3(mp4, mp3):
     FILETOCONVERT = AudioFileClip(mp4)
     FILETOCONVERT.write_audiofile(mp3)
     FILETOCONVERT.close()
 
-
-def download_thread(stream, file_path, window, convert_to_mp3=False):
+def download_thread(selected_stream, audio_stream, file_path, window, convert_to_mp3=False):
     global done, title
-    sanitized_title = re.sub(r'[<>:"/\\|?*]', '_', stream.title)
+    sanitized_title = re.sub(r'[<>:"/\\|?*]', '_', selected_stream.title)
     title = sanitized_title.replace('/', '_').replace('\\', '_')
-    original_extension = ".mp4" if "mp4" in stream.mime_type else ".webm"
+    original_extension = ".mp4" if "mp4" in selected_stream.mime_type else ".webm"
     base_file_path = os.path.join(file_path, f"{title}{original_extension}")
 
-    stream.download(output_path=file_path, filename=f"{title}{original_extension}")
+    selected_stream.download(output_path=file_path, filename=f"{title}{original_extension}")
 
-    if convert_to_mp3 and "mp4" in stream.mime_type:
+    if audio_stream:
+        audio_stream.download(output_path=file_path, filename=f"{title}-audio.mp3")
+
+    # merge the audio and video streams together
+    if "audio" not in selected_stream.mime_type:
+        # Get the audio and video streams
+        video = VideoFileClip(base_file_path)
+        audio = AudioFileClip(f"{file_path}/{title}-audio.mp3")
+
+        # Apply the audio to the video
+        video = video.set_audio(audio)
+        video.write_videofile(base_file_path)
+
+        # Remove the audio file and close the video and audio streams
+        os.remove(f"{file_path}/{title}-audio.mp3")
+        video.close()
+        audio.close()
+
+    if convert_to_mp3 and "mp4" in selected_stream.mime_type:
         mp3_file_path = f"{file_path}/{title}.mp3"
         try:
             MP4toMP3(base_file_path, mp3_file_path)
@@ -50,6 +66,7 @@ def get_stream(url):
         sg.popup_error(title='Download Error: Unable to fetch desired YouTube video! Please verify URL and try again.')
 
     streams = yt.streams
+
     audio_streams = streams.filter(only_audio=True)
     video_streams = streams.filter(only_video=True)
 
@@ -76,15 +93,21 @@ def get_stream(url):
     event, values = window.read(close=True)
     window.close()
 
+    #from the audio streams, get the highest quality audio stream and get the selected video streams mime type. If the video stream is mp4, then we can convert the audio stream to mp3
     if event in (sg.WIN_CLOSED, 'Cancel'):
-        return None, False
+        return None, None, False
 
     for k, v in values.items():
         if v:
             selected_stream, convert_to_mp3 = stream_options[k]
-            return selected_stream, convert_to_mp3
+            
+            #check whether the stream is audio or video
+            if "audio" in selected_stream.mime_type:
+                return selected_stream, None, convert_to_mp3
+            else:
+                return selected_stream, audio_streams[0], convert_to_mp3
 
-    return None, False
+    return None, None, False
 
 
 def menu():
@@ -125,10 +148,10 @@ def menu():
                         sg.popup_error("You must select or provide a directory to save the video to!", title="Missing Values")
                     else:
                         done = False
-                        stream, should_convert_to_mp3 = get_stream(url_value)
-                        if stream:
+                        video_stream, audio_stream, should_convert_to_mp3 = get_stream(url_value)
+                        if video_stream:
                             is_okay = True
-                            thread = threading.Thread(target=download_thread, args=(stream, values['-DIRECTORY-'], window, should_convert_to_mp3), daemon=True)
+                            thread = threading.Thread(target=download_thread, args=(video_stream, audio_stream, values['-DIRECTORY-'], window, should_convert_to_mp3), daemon=True)
                             thread.start()
                         else:
                             is_okay = False
