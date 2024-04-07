@@ -5,6 +5,8 @@ import pyperclip
 import threading
 import time
 from moviepy.editor import *
+import os
+import re
 
 done = False
 streams = None
@@ -19,9 +21,10 @@ def MP4toMP3(mp4, mp3):
 
 def download_thread(stream, file_path, window, convert_to_mp3=False):
     global done, title
-    title = stream.title.replace('/', '_').replace('\\', '_')
+    sanitized_title = re.sub(r'[<>:"/\\|?*]', '_', stream.title)
+    title = sanitized_title.replace('/', '_').replace('\\', '_')
     original_extension = ".mp4" if "mp4" in stream.mime_type else ".webm"
-    base_file_path = f"{file_path}/{title}{original_extension}"
+    base_file_path = os.path.join(file_path, f"{title}{original_extension}")
 
     stream.download(output_path=file_path, filename=f"{title}{original_extension}")
 
