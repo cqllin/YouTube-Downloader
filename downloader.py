@@ -76,6 +76,9 @@ def get_stream(url):
     event, values = window.read(close=True)
     window.close()
 
+    if event in (sg.WIN_CLOSED, 'Cancel'):
+        return None, False
+
     for k, v in values.items():
         if v:
             selected_stream, convert_to_mp3 = stream_options[k]
