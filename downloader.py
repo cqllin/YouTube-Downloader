@@ -12,10 +12,14 @@ done = False
 streams = None
 title = ''
 
-def MP4toMP3(mp4, mp3):
-    FILETOCONVERT = AudioFileClip(mp4)
-    FILETOCONVERT.write_audiofile(mp3)
-    FILETOCONVERT.close()
+
+def MP4toMP3(mp4, mp3, file_path):
+    global title
+    file_to_convert = AudioFileClip(mp4)
+    file_to_convert.write_audiofile(mp3)
+    file_to_convert.close()
+    os.remove(f"{file_path}/{title}.mp4")  # Delete MP4 file left behind after converting to MP3.
+
 
 def download_thread(selected_stream, audio_stream, file_path, window, convert_to_mp3=False):
     global done, title
@@ -47,7 +51,7 @@ def download_thread(selected_stream, audio_stream, file_path, window, convert_to
     if convert_to_mp3 and "mp4" in selected_stream.mime_type:
         mp3_file_path = f"{file_path}/{title}.mp3"
         try:
-            MP4toMP3(base_file_path, mp3_file_path)
+            MP4toMP3(base_file_path, mp3_file_path, file_path)
             window.write_event_value('Conversion Finished', title)
         except Exception as e:
             print(f"Error occurred in download_thread attempting to call convert function: {str(e)}")
